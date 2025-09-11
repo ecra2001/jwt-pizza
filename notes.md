@@ -18,10 +18,8 @@ As part of `Deliverable ⓵ Development deployment: JWT Pizza`, start up the app
 | View History page                                   |history.jsx|none|none|
 | Login as franchisee<br/>(f@jwt.com, pw: franchisee) |login.jsx|[PUT] /api/auth|              |
 | View franchise<br/>(as franchisee)                  |franchiseDashboard.jsx|[GET] api/franchise/${user.id}|             |
-| Create a store                                      |createStore.jsx|[GET] api/franchise/${user.id}
-[POST] /api/franchise/${franchise.id}/store|              |
-| Close a store                                       |closeStore.jsx|[GET] api/franchise/${user.id}
-[POST] /api/franchise/${franchise.id}/store/${store.id}|              |
+| Create a store                                      |createStore.jsx|[GET] api/franchise/${user.id} [POST] /api/franchise/${franchise.id}/store|              |
+| Close a store                                       |closeStore.jsx|[GET] api/franchise/${user.id} [POST] /api/franchise/${franchise.id}/store/${store.id}|              |
 | Login as admin<br/>(a@jwt.com, pw: admin)           |login.jsx|[PUT] /api/auth|              |
 | View Admin page                                     |adminDashboard.jsx|[GET] api/franchise|              |
 | Create a franchise for t@jwt.com                    |createFranchise.jsx|[POST] api/franchise|              |
