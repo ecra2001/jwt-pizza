@@ -18,6 +18,13 @@ async function basicInit(page: Page) {
       password: "a",
       roles: [{ role: Role.Diner }],
     },
+    "t@jwt.com": {
+      id: "3",
+      name: "test",
+      email: "t@jwt.com",
+      password: "t",
+      roles: [{ role: Role.Diner }],
+    },
     "f@jwt.com": {
       id: "5",
       name: "Fran Cisco",
@@ -96,6 +103,33 @@ async function basicInit(page: Page) {
     expect(route.request().method()).toBe("GET");
     await route.fulfill({ json: loggedInUser });
   });
+
+  // Update User
+  await page.route(/\/api\/user\/\d+$/, async (route) => {
+  const method = route.request().method();
+
+  if (method === "PUT") {
+    const updateReq = route.request().postDataJSON();
+
+    // Update our mock user record to persist changes
+    const user = validUsers[updateReq.email] || loggedInUser;
+    if (user) {
+      user.name = updateReq.name || user.name;
+      user.email = updateReq.email || user.email;
+      user.password = updateReq.password || user.password;
+      loggedInUser = user;
+    }
+
+    const updatedUser = {
+      ...user,
+      roles: [{ role: Role.Diner }],
+    };
+
+    await route.fulfill({ json: { user: updatedUser, token: "ghijkl" } });
+  } else {
+    await route.fulfill({ status: 405 });
+  }
+});
 
   // A standard menu
   await page.route("*/**/api/order/menu", async (route) => {
@@ -176,13 +210,34 @@ async function basicInit(page: Page) {
 
   // Order a pizza.
   await page.route("*/**/api/order", async (route) => {
-    const orderReq = route.request().postDataJSON();
-    const orderRes = {
-      order: { ...orderReq, id: 23 },
-      jwt: "eyJpYXQ",
-    };
-    expect(route.request().method()).toBe("POST");
-    await route.fulfill({ json: orderRes });
+    const method = route.request().method();
+    if (method === "POST") {
+      const orderReq = route.request().postDataJSON();
+      const orderRes = {
+        order: { ...orderReq, id: 23 },
+        jwt: "eyJpYXQ",
+      };
+      await route.fulfill({ json: orderRes });
+    }
+    if (method === "GET") {
+      const getRes = {
+        dinerId: 4,
+      orders: [
+        {
+          id: 1,
+          franchiseId: 1,
+          storeId: 4,
+          date: "2024-06-05T05:14:40.000Z",
+          items: [
+            { id: 1, menuId: 1, description: "Veggie", price: 0.0038 },
+            { id: 2, menuId: 2, description: "Pepperoni", price: 0.0042 },
+          ],
+        },
+      ],
+      page: 1,
+      }
+      await route.fulfill({ json: getRes });
+    }
   });
 
   await page.goto("/");
@@ -322,35 +377,37 @@ test("admin login and create franchise", async ({ page }) => {
 });
 
 test("updateUser", async ({ page }) => {
-  const email = `user${Math.floor(Math.random() * 10000)}@jwt.com`;
+  await basicInit(page);
   await page.goto("/");
   await page.getByRole("link", { name: "Register" }).click();
-  await page.getByRole("textbox", { name: "Full name" }).fill("pizza diner");
-  await page.getByRole("textbox", { name: "Email address" }).fill(email);
-  await page.getByRole("textbox", { name: "Password" }).fill("diner");
+  await page.getByRole("textbox", { name: "Full name" }).fill("test");
+  await page.getByRole("textbox", { name: "Email address" }).fill("t@jwt.com");
+  await page.getByRole("textbox", { name: "Password" }).fill("t");
   await page.getByRole("button", { name: "Register" }).click();
 
-  await page.getByRole("link", { name: "pd" }).click();
+  await page.getByRole("link", { name: "t", exact: true }).click();
 
-  await expect(page.getByRole("main")).toContainText("pizza diner");
+  await expect(page.getByRole("main")).toContainText("test");
 
   await page.getByRole("button", { name: "Edit" }).click();
   await expect(page.locator("h3")).toContainText("Edit user");
-  await page.getByRole("textbox").first().fill("pizza dinerx");
+  await page.getByRole("textbox").first().fill("testtest");
   await page.getByRole("button", { name: "Update" }).click();
 
   await page.waitForSelector('[role="dialog"].hidden', { state: "attached" });
 
-  await expect(page.getByRole("main")).toContainText("pizza dinerx");
+  await expect(page.getByRole("main")).toContainText("testtest");
 
   await page.getByRole("link", { name: "Logout" }).click();
   await page.getByRole("link", { name: "Login" }).click();
 
-  await page.getByRole("textbox", { name: "Email address" }).fill(email);
-  await page.getByRole("textbox", { name: "Password" }).fill("diner");
+  await page.getByRole("textbox", { name: "Email address" }).fill("t@jwt.com");
+  await page.getByRole("textbox", { name: "Password" }).fill("t");
   await page.getByRole("button", { name: "Login" }).click();
 
-  await page.getByRole("link", { name: "pd" }).click();
+  await page.getByRole("link", { name: "t", exact: true }).click();
 
-  await expect(page.getByRole("main")).toContainText("pizza dinerx");
+  await expect(page.getByRole("main")).toContainText("testtest");
 });
+
+test("get user list", async ({ page }) => {});

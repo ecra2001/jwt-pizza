@@ -11,20 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.set_version.outputs.version }}
-    services:
-      mysql:
-        image: mysql:8.0.29
-        env:
-          MYSQL_ROOT_PASSWORD: tempdbpassword
-          MYSQL_DATABASE: pizza
-        ports:
-          - '3306:3306'
-        options: >-
-          --health-cmd "mysqladmin ping -ptempdbpassword"
-          --health-interval 10s
-          --health-start-period 10s
-          --health-timeout 5s
-          --health-retries 10
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -33,35 +19,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22.x'
-      
-      - name: Checkout backend repo
-        uses: actions/checkout@v4
-        with:
-          repository: ecra2001/jwt-pizza-service
-          token: ${{ secrets.GITHUB_TOKEN }}
-          path: backend
-
-      - name: Create backend config.js
-        run: |
-          cd backend/src
-          echo "module.exports = {" > config.js
-          echo "  jwtSecret: '${{ secrets.JWT_SECRET }}'," >> config.js
-          echo "  db: {" >> config.js
-          echo "    connection: {" >> config.js
-          echo "      host: '127.0.0.1'," >> config.js
-          echo "      user: 'root'," >> config.js
-          echo "      password: 'tempdbpassword'," >> config.js
-          echo "      database: 'pizza'," >> config.js
-          echo "      connectTimeout: 60000," >> config.js
-          echo "    }," >> config.js
-          echo "    listPerPage: 10," >> config.js
-          echo "  }," >> config.js
-          echo "  factory: {" >> config.js
-          echo "    url: 'https://pizza-factory.cs329.click'," >> config.js
-          echo "    apiKey: '${{ secrets.FACTORY_API_KEY }}'," >> config.js
-          echo "  }," >> config.js
-          echo "};" >> config.js
-          cd ../..
 
       - name: set version
         id: set_version
@@ -78,16 +35,6 @@ jobs:
       - name: Run tests
         run: |
           npx playwright install --with-deps chromium
-          cd backend
-          npm ci
-          npm run start &
-          cd ..
-          echo "Waiting for backend to start..."
-          until curl -s http://localhost:3000/ > /dev/null; do
-            sleep 3
-            echo "Still waiting..."
-          done
-          echo "Backend is up!"
           npm run test:coverage 
 
       - name: Update coverage
