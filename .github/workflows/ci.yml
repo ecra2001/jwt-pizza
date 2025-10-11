@@ -20,6 +20,29 @@ jobs:
         with:
           node-version: '22.x'
 
+      - name: Checkout backend repo
+        uses: actions/checkout@v4
+        with:
+          repository: ecra2001/jwt-pizza-service
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: backend
+
+      - name: Start backend
+        run: |
+          cd backend
+          npm ci
+          npm run start &
+          cd ..
+
+      - name: Wait for backend
+        run: |
+          echo "Waiting for backend to start..."
+          until curl -s http://localhost:3000/ > /dev/null; do
+            sleep 3
+            echo "Still waiting..."
+          done
+          echo "Backend is up!"
+
       - name: set version
         id: set_version
         run: |
