@@ -28,6 +28,10 @@ jobs:
           path: backend
 
       - name: Start backend
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          FACTORY_API_KEY: ${{ secrets.FACTORY_API_KEY }}
+          NET_ID: ${{ secrets.NET_ID }}
         run: |
           cd backend
           npm ci
