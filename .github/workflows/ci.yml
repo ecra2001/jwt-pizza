@@ -11,20 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.set_version.outputs.version }}
-    services:
-      mysql:
-        image: mysql:8.0.29
-        env:
-          MYSQL_ROOT_PASSWORD: tempdbpassword
-          MYSQL_DATABASE: pizza
-        ports:
-          - '3306:3306'
-        options: >-
-          --health-cmd "mysqladmin ping -ptempdbpassword"
-          --health-interval 10s
-          --health-start-period 10s
-          --health-timeout 5s
-          --health-retries 10
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -35,49 +21,18 @@ jobs:
           node-version: '22.x'
 
       - name: Checkout backend repo
-        uses: actions/checkout@v4
-        with:
-          repository: ecra2001/jwt-pizza-service
-          token: ${{ secrets.GITHUB_TOKEN }}
-          path: backend
+        run: git clone https://github.com/ecra2001/jwt-pizza-service.git
 
-      - name: Create backend config.js
+      - name: Install backend
         run: |
-          cd backend/src
-          echo "module.exports = {" > config.js
-          echo "  jwtSecret: '${{ secrets.JWT_SECRET }}'," >> config.js
-          echo "  db: {" >> config.js
-          echo "    connection: {" >> config.js
-          echo "      host: '127.0.0.1'," >> config.js
-          echo "      user: 'root'," >> config.js
-          echo "      password: 'tempdbpassword'," >> config.js
-          echo "      database: 'pizza'," >> config.js
-          echo "      connectTimeout: 60000," >> config.js
-          echo "    }," >> config.js
-          echo "    listPerPage: 10," >> config.js
-          echo "  }," >> config.js
-          echo "  factory: {" >> config.js
-          echo "    url: 'https://pizza-factory.cs329.click'," >> config.js
-          echo "    apiKey: '${{ secrets.FACTORY_API_KEY }}'," >> config.js
-          echo "  }," >> config.js
-          echo "};" >> config.js
-          cd ../..
+          cd jwt-pizza-service
+          npm ci
 
       - name: Start backend
         run: |
-          cd backend
-          npm ci
+          cd jwt-pizza-service
           npm run start &
-          cd ..
-
-      - name: Wait for backend
-        run: |
-          echo "Waiting for backend to start..."
-          until curl -s http://localhost:3000/ > /dev/null; do
-            sleep 3
-            echo "Still waiting..."
-          done
-          echo "Backend is up!"
+          npx wait-on http://localhost:3000
 
       - name: set version
         id: set_version
