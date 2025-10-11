@@ -27,11 +27,29 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           path: backend
 
+      - name: Create backend config.js
+        run: |
+          cd backend/src
+          echo "module.exports = {" > config.js
+          echo "  jwtSecret: '${{ secrets.JWT_SECRET }}'," >> config.js
+          echo "  db: {" >> config.js
+          echo "    connection: {" >> config.js
+          echo "      host: '127.0.0.1'," >> config.js
+          echo "      user: 'root'," >> config.js
+          echo "      password: 'password'," >> config.js
+          echo "      database: 'pizza'," >> config.js
+          echo "      connectTimeout: 60000," >> config.js
+          echo "    }," >> config.js
+          echo "    listPerPage: 10," >> config.js
+          echo "  }," >> config.js
+          echo "  factory: {" >> config.js
+          echo "    url: 'https://pizza-factory.cs329.click'," >> config.js
+          echo "    apiKey: '${{ secrets.FACTORY_API_KEY }}'," >> config.js
+          echo "  }," >> config.js
+          echo "};" >> config.js
+          cd ../..
+
       - name: Start backend
-        env:
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          FACTORY_API_KEY: ${{ secrets.FACTORY_API_KEY }}
-          NET_ID: ${{ secrets.NET_ID }}
         run: |
           cd backend
           npm ci
