@@ -7,7 +7,7 @@
 - Severity: 4
 - Description: Tried to alter JWT Token to make Role = Admin. Result was unauthorized.
 - Images:
-![description of screenshot](images/Screenshot 2025-12-04 at 4.09.58 PM.png)
+![description of screenshot](images/SelfAttack.png)
 - Correction: None
 
 ## Elijah Parker Self Attack
@@ -29,7 +29,7 @@ Was not able to get an image from him.
 - Severity: 4
 - Description: Spammed a bunch of unauthorized login requests to see how it would handle it. It handled it fine and can still login to his own user successfully.
 - Images:
-![description of screenshot](images/Screenshot 2025-12-04 at 5.30.58 PM.png)
+![description of screenshot](images/PeerAttack2.png)
 - Correction: None
 
 ## Elijah Parker on Elijah Cramer
@@ -39,7 +39,7 @@ Was not able to get an image from him.
 - Severity: 1
 - Description: Was able to find my admin password through my Github deployment and deleted my stores and even deleted my admin account.
 - Images:
-![description of screenshot](images/Screenshot 2025-12-04 at 3.38.32 PM.png)
+![description of screenshot](images/PeerAttack.png)
 - Correction: Change my admin credentials to environmental variables.
 
 # Learnings
